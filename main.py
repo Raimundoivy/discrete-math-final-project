@@ -66,7 +66,6 @@ class AplicacaoLogica:
                 print(f"[!] Erro na expansão: {e}")
                 return
 
-        print("[*] Gerando Tabela Verdade...")
         cabecalhos, linhas, eh_valido = self.verificador.construir_tabela_verdade(premissas_ativas, conclusao_ativa)
         
         if eh_valido:
