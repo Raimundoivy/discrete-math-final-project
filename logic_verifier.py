@@ -6,7 +6,7 @@ class VerificadorLogico:
     def obter_variaveis(self, formula: Formula):
         match formula:
             case Simbolo(nome): return {nome}
-            case Predicado(nome, args): return {f"{nome}_{'_'.join(args)}"} # Flattens P(a) to P_a
+            case Predicado(nome, args): return {str(formula)}
             case Nao(op): return self.obter_variaveis(op)
             case E(l, r) | Ou(l, r) | Implica(l, r) | Bicondicional(l, r):
                 return self.obter_variaveis(l) | self.obter_variaveis(r)
@@ -19,7 +19,7 @@ class VerificadorLogico:
             case Simbolo(nome): 
                 return atribuicao.get(nome, False)
             case Predicado(nome, args):
-                chave = f"{nome}_{'_'.join(args)}"
+                chave = str(formula)
                 return atribuicao.get(chave, False)
             case Nao(op): return not self.avaliar(op, atribuicao)
             case E(l, r): return self.avaliar(l, atribuicao) and self.avaliar(r, atribuicao)
