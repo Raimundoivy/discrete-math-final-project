@@ -164,7 +164,7 @@ class AplicacaoLogica:
                 
                 # Loop flexível para inserir premissas
                 while True:
-                    i = len(self.premissas) + 12
+                    i = len(self.premissas) + 1
                     p_txt = input(f"Premissa {i} (ou Enter p/ encerrar): ").strip()
                     
                     if p_txt.lower() == 'ajuda':
