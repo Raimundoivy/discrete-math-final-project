@@ -3,21 +3,26 @@ from logic_parser import ParserLogico
 from logic_verifier import VerificadorLogico
 from logic_forms import IdentificadorFormas
 
+# Classe principal que gerencia a interação com o usuário (CLI)
 class AplicacaoLogica:
     def __init__(self):
+        # Inicializa os módulos auxiliares
         self.parser = ParserLogico()
         self.verificador = VerificadorLogico()
         self.identificador_formas = IdentificadorFormas()
         
+        # Estado atual do argumento
         self.dominio = []
         self.premissas = []
         self.conclusao = None
 
+    # Reseta os dados para permitir um novo argumento
     def limpar(self):
         self.dominio = []
         self.premissas = []
         self.conclusao = None
 
+    # Função auxiliar para ler input do usuário com validação
     def obter_entrada(self, prompt, obrigatorio=True):
         while True:
             valor = input(f"{prompt} ").strip()
@@ -25,9 +30,11 @@ class AplicacaoLogica:
             if valor: return valor
             print("Entrada não pode ser vazia.")
 
+    # Formata e imprime a tabela verdade no console de forma alinhada
     def imprimir_tabela(self, cabecalhos, linhas):
         larguras = [max(len(str(h)), 7) for h in cabecalhos]
         
+        # Cria cabeçalho
         header_str = " | ".join(f"{str(h):^{w}}" for h, w in zip(cabecalhos, larguras))
         sep = "-" * len(header_str)
         
@@ -35,6 +42,7 @@ class AplicacaoLogica:
         print(header_str)
         print(sep)
         
+        # Imprime as linhas de valores
         for linha in linhas:
             vals = []
             for item in linha:
@@ -45,9 +53,11 @@ class AplicacaoLogica:
             print(" | ".join(f"{v:^{w}}" for v, w in zip(vals, larguras)))
         print(sep + "\n")
 
+    # Coordena a análise lógica completa
     def executar_analise(self):
         print("\n=== RELATÓRIO DE ANÁLISE ===")
         
+        # Tenta identificar o nome da forma lógica (ex: Modus Ponens)
         forma = self.identificador_formas.identificar(self.premissas, self.conclusao)
         print(f"[*] Forma Identificada: {forma}")
 
@@ -55,6 +65,7 @@ class AplicacaoLogica:
         premissas_ativas = self.premissas
         conclusao_ativa = self.conclusao
         
+        # Se houver domínio, expande quantificadores (forall/exists)
         if self.dominio:
             print(f"[*] Expandindo quantificadores para domínio: {self.dominio}")
             try:
@@ -64,6 +75,7 @@ class AplicacaoLogica:
                 print(f"[!] Erro na expansão: {e}")
                 return
 
+        # Gera e avalia a tabela verdade
         cabecalhos, linhas, eh_valido = self.verificador.construir_tabela_verdade(premissas_ativas, conclusao_ativa)
         
         if eh_valido:
@@ -72,15 +84,18 @@ class AplicacaoLogica:
             print("\n>>> RESULTADO: ARGUMENTO INVÁLIDO <<<")
             print("Existem linhas onde as Premissas são V e a Conclusão é F.")
 
+        # Imprime automaticamente a tabela completa
+        self.imprimir_tabela(cabecalhos, linhas)
+
+        # Menu pós-análise
         while True:
-            opt = input("\n[1] Ver Tabela Completa  [2] Novo Argumento  [3] Sair\n> ")
+            opt = input("\n[1] Novo Argumento  [2] Sair\n> ")
             if opt == '1':
-                self.imprimir_tabela(cabecalhos, linhas)
-            elif opt == '2':
                 return
-            elif opt == '3':
+            elif opt == '2':
                 sys.exit(0)
 
+    # Loop principal da aplicação
     def run(self):
         while True:
             self.limpar()

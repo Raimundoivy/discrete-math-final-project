@@ -1,7 +1,9 @@
 from logic_ast import *
 
+# Classe que tenta identificar padrões lógicos conhecidos (Regras de Inferência)
 class IdentificadorFormas:
     
+    # Método principal de identificação
     def identificar(self, premissas, conclusao):
         if len(premissas) == 2:
             res = self._analisar_duas_premissas(premissas, conclusao)
@@ -14,12 +16,14 @@ class IdentificadorFormas:
             
         return "Forma Genérica / Não Identificada"
 
+    # Analisa padrões proposicionais comuns com 2 premissas
     def _analisar_duas_premissas(self, premissas, conclusao):
         p1, p2 = premissas[0], premissas[1]
         
         condicional = None
         outra = None
         
+        # Tenta achar uma implicação (P -> Q)
         if isinstance(p1, Implica):
             condicional = p1
             outra = p2
@@ -28,23 +32,28 @@ class IdentificadorFormas:
             outra = p1
             
         if condicional:
+            # Modus Ponens: Se P->Q e P, então Q
             if outra == condicional.esquerda and conclusao == condicional.direita:
                 return "Modus Ponens (Válido)"
         
         if condicional:
+            # Modus Tollens: Se P->Q e ~Q, então ~P
             if isinstance(outra, Nao) and outra.operando == condicional.direita:
                 if isinstance(conclusao, Nao) and conclusao.operando == condicional.esquerda:
                     return "Modus Tollens (Válido)"
 
         if condicional:
+            # Falácia da Afirmação do Consequente
             if outra == condicional.direita and conclusao == condicional.esquerda:
                 return "FALÁCIA: Afirmação do Consequente (Inválido)"
 
         if condicional:
+             # Falácia da Negação do Antecedente
              if isinstance(outra, Nao) and outra.operando == condicional.esquerda:
                  if isinstance(conclusao, Nao) and conclusao.operando == condicional.direita:
                      return "FALÁCIA: Negação do Antecedente (Inválido)"
 
+        # Silogismo Hipotético: (P->Q) e (Q->R) logo (P->R)
         if isinstance(p1, Implica) and isinstance(p2, Implica) and isinstance(conclusao, Implica):
             if p1.direita == p2.esquerda:
                 if conclusao.esquerda == p1.esquerda and conclusao.direita == p2.direita:
@@ -53,6 +62,7 @@ class IdentificadorFormas:
                 if conclusao.esquerda == p2.esquerda and conclusao.direita == p1.direita:
                     return "Silogismo Hipotético (Válido)"
 
+        # Silogismo Disjuntivo: (P ou Q) e ~P logo Q
         disjuncao = None
         negacao = None
         
@@ -67,7 +77,9 @@ class IdentificadorFormas:
 
         return "Forma Genérica / Não Identificada"
 
+    # Analisa Silogismos Categóricos (Lógica de Predicados)
     def _analisar_silogismos(self, premissas, conclusao):
+        # Extrai estrutura: Todo S é P
         def extrair_termos_universal(f):
             if isinstance(f, ParaTodo) and isinstance(f.corpo, Implica):
                 subj = f.corpo.esquerda
@@ -79,6 +91,7 @@ class IdentificadorFormas:
                 return (str(subj), str(pred), positivo)
             return None
 
+        # Extrai estrutura: Algum S é P
         def extrair_termos_existencial(f):
             if isinstance(f, Existe) and isinstance(f.corpo, E):
                 subj = f.corpo.esquerda
@@ -100,6 +113,7 @@ class IdentificadorFormas:
         ext_p2 = extrair_termos_existencial(p2)
         ext_con = extrair_termos_existencial(conclusao)
 
+        # Barbara: Todo M é P, Todo S é M -> Todo S é P
         if uni_p1 and uni_p2 and uni_con:
             m1, p1_pred, pos1 = uni_p1
             s2, m2, pos2 = uni_p2
@@ -111,6 +125,7 @@ class IdentificadorFormas:
                 if m2 == m1 and s2 == sc and p1_pred == pc: 
                     return "Silogismo: Barbara (Válido)"
 
+        # Celarent: Nenhum M é P, Todo S é M -> Nenhum S é P
         if uni_p1 and uni_p2 and uni_con:
             if not uni_p1[2] and uni_p2[2] and not uni_con[2]:
                 m_neg, p_neg, _ = uni_p1
@@ -128,6 +143,7 @@ class IdentificadorFormas:
                 if m_neg == m_pos and s_pos == s_conc and p_neg == p_conc:
                     return "Silogismo: Celarent (Válido)"
 
+        # Darii: Todo M é P, Algum S é M -> Algum S é P
         if (uni_p1 and ext_p2 and ext_con) or (uni_p2 and ext_p1 and ext_con):
             uni = uni_p1 if uni_p1 else uni_p2
             ext = ext_p2 if uni_p1 else ext_p1
