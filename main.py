@@ -30,6 +30,39 @@ class AplicacaoLogica:
             if valor: return valor
             print("Entrada não pode ser vazia.")
 
+    # Exibe um guia completo de sintaxe
+    def exibir_ajuda_sintaxe(self):
+        print("\n" + "="*65)
+        print("                 GUIA DE SINTAXE E OPERADORES")
+        print("="*65)
+        print(f"{'TIPO':<15} | {'SÍMBOLO':<10} | {'EXEMPLO':<30}")
+        print("-" * 65)
+        print(f"{'Negação':<15} | {'~':<10} | {'~P, ~Mortal(x)':<30}")
+        print(f"{'Conjunção (E)':<15} | {'&':<10} | {'P & Q':<30}")
+        print(f"{'Disjunção (OU)':<15} | {'|':<10} | {'P | Q':<30}")
+        print(f"{'Implicação':<15} | {'->':<10} | {'P -> Q':<30}")
+        print(f"{'Bicondicional':<15} | {'<->':<10} | {'P <-> Q':<30}")
+        print("-" * 65)
+        print("QUANTIFICADORES (Lógica de Predicados):")
+        print(f"{'Universal':<15} | {'forall':<10} | {'forall x (H(x) -> M(x))':<30}")
+        print(f"{'Existencial':<15} | {'exists':<10} | {'exists x (P(x) & Q(x))':<30}")
+        print("-" * 65)
+        print("DOMÍNIO (Como inserir):")
+        print(" Definição: Lista de objetos finitos que as variáveis 'x', 'y' representam.")
+        print(" Sintaxe:   Nomes separados por vírgula (sem parênteses ou chaves).")
+        print(" Entrada:   pedro, maria, joao")
+        print(" Efeito:    'forall x P(x)' será testado como 'P(pedro) & P(maria) & P(joao)'")
+        print("-" * 65)
+        print("PRECEDÊNCIA (da maior prioridade para a menor):")
+        print(" 1. Parênteses ()")
+        print(" 2. Negação (~), Quantificadores (forall, exists)")
+        print(" 3. Conjunção (&)")
+        print(" 4. Disjunção (|)")
+        print(" 5. Implicação (->)")
+        print(" 6. Bicondicional (<->)")
+        print("="*65 + "\n")
+        input("Pressione Enter para voltar...")
+
     # Formata e imprime a tabela verdade no console de forma alinhada
     def imprimir_tabela(self, cabecalhos, linhas):
         larguras = [max(len(str(h)), 7) for h in cabecalhos]
@@ -89,11 +122,12 @@ class AplicacaoLogica:
 
         # Menu pós-análise
         while True:
-            opt = input("\n[1] Novo Argumento  [2] Sair\n> ")
+            opt = input("\n[1] Novo Argumento  [2] Voltar ao Menu\n> ")
             if opt == '1':
                 return
             elif opt == '2':
-                sys.exit(0)
+                # Apenas sai do método, retornando ao loop run()
+                return
 
     # Loop principal da aplicação
     def run(self):
@@ -102,32 +136,70 @@ class AplicacaoLogica:
             print("\n" + "="*40)
             print("   VERIFICADOR LÓGICO")
             print("="*40)
-            print("1. Lógica Proposicional")
-            print("2. Lógica de Predicados")
+            print("1. Nova Análise (Proposicional / Predicados)")
+            print("2. Guia de Sintaxe")
             print("3. Sair")
             
             choice = input("> ")
-            if choice == '3': break
-            if choice not in ['1', '2']: continue
+            if choice == '3': 
+                break
             
+            if choice == '2':
+                self.exibir_ajuda_sintaxe()
+                continue
+            
+            if choice != '1': 
+                continue
+            
+            # Fluxo de Nova Análise
             try:
-                if choice == '2':
+                tipo = input("Possui domínio finito (Lógica de Predicados)? (s/n): ").lower().strip()
+                
+                if tipo == 's':
                     d_in = self.obter_entrada("Domínio (ex: a,b,c): ", obrigatorio=True)
                     self.dominio = [x.strip() for x in d_in.split(',')]
 
-                qtd = int(self.obter_entrada("Número de Premissas: "))
-                print("Sintaxe: use '->', '<->', '&', '|', '~', 'forall x', 'exists x'")
-                for i in range(qtd):
-                    p_txt = self.obter_entrada(f"Premissa {i+1}: ")
-                    self.premissas.append(self.parser.analisar(p_txt))
+                print("\n--- Inserção de Premissas ---")
+                print("(Digite 'ajuda' para ver a sintaxe ou Enter para parar de adicionar premissas)")
+                
+                # Loop flexível para inserir premissas
+                while True:
+                    i = len(self.premissas) + 12
+                    p_txt = input(f"Premissa {i} (ou Enter p/ encerrar): ").strip()
+                    
+                    if p_txt.lower() == 'ajuda':
+                        self.exibir_ajuda_sintaxe()
+                        continue
+                    
+                    if not p_txt:
+                        if len(self.premissas) == 0:
+                            print("Adicione pelo menos uma premissa.")
+                            continue
+                        break
+                        
+                    try:
+                        parsed = self.parser.analisar(p_txt)
+                        self.premissas.append(parsed)
+                    except Exception as e:
+                        print(f"Erro de Sintaxe: {e}")
 
-                c_txt = self.obter_entrada("Conclusão: ")
-                self.conclusao = self.parser.analisar(c_txt)
+                c_txt = ""
+                while not c_txt:
+                    c_txt = input("Conclusão: ").strip()
+                    if c_txt.lower() == 'ajuda':
+                        self.exibir_ajuda_sintaxe()
+                        c_txt = "" # Reseta para pedir de novo
+                    elif c_txt:
+                        try:
+                            self.conclusao = self.parser.analisar(c_txt)
+                        except Exception as e:
+                            print(f"Erro de Sintaxe: {e}")
+                            c_txt = ""
                 
                 self.executar_analise()
 
             except Exception as e:
-                print(f"\n[Erro] {e}")
+                print(f"\n[Erro Crítico] {e}")
                 input("Pressione Enter...")
 
 if __name__ == "__main__":
