@@ -2,21 +2,25 @@ import sys
 from logic_parser import ParserLogico
 from logic_verifier import VerificadorLogico
 from logic_forms import IdentificadorFormas
+from logic_resolution import ResolutionProver
 
 class AplicacaoLogica:
     def __init__(self):
         self.parser = ParserLogico()
         self.verificador = VerificadorLogico()
         self.identificador_formas = IdentificadorFormas()
+        self.prover = ResolutionProver()
         
         self.dominio = []
         self.premissas = []
         self.conclusao = None
+        self.modo_infinito = False
 
     def limpar(self):
         self.dominio = []
         self.premissas = []
         self.conclusao = None
+        self.modo_infinito = False
 
     def obter_entrada(self, prompt, obrigatorio=True):
         while True:
@@ -48,12 +52,31 @@ class AplicacaoLogica:
     def executar_analise(self):
         print("\n=== RELATÓRIO DE ANÁLISE ===")
         
-        if not self.dominio: 
-            forma = self.identificador_formas.identificar(self.premissas, self.conclusao)
-            print(f"[*] Forma Identificada: {forma}")
-        else:
-            print("[*] Forma: Análise de Predicados com Domínio Finito")
+        forma = self.identificador_formas.identificar(self.premissas, self.conclusao)
+        print(f"[*] Forma Identificada: {forma}")
 
+        if self.modo_infinito:
+            print("[*] Modo: Domínio Infinito/Simbólico (via Resolução)")
+            print("[*] Convertendo para cláusulas e buscando contradição...")
+            
+            try:
+                valido = self.prover.prove(self.premissas, self.conclusao)
+                
+                if valido:
+                    print("\n>>> RESULTADO: ARGUMENTO VÁLIDO <<<")
+                    print("Prova por Contradição bem-sucedida (Cláusula Vazia encontrada).")
+                else:
+                    print("\n>>> RESULTADO: NÃO FOI POSSÍVEL PROVAR <<<")
+                    print("O método de resolução não encontrou contradição (pode ser inválido ou inconclusivo).")
+            except Exception as e:
+                print(f"[!] Erro no Provedor de Resolução: {e}")
+            
+            # Pausa para leitura no modo resolução
+            input("\nPressione Enter para continuar...")
+            return
+
+        # Modo Tabela Verdade (Finito)
+        print("[*] Modo: Verificação em Domínio Finito")
         premissas_ativas = self.premissas
         conclusao_ativa = self.conclusao
         
@@ -99,8 +122,13 @@ class AplicacaoLogica:
             
             try:
                 if choice == '2':
-                    d_in = self.obter_entrada("Domínio (ex: a,b,c): ")
-                    self.dominio = [x.strip() for x in d_in.split(',')]
+                    print("\n[Dica] Deixe o domínio vazio para usar Prova por Resolução (Domínio Infinito)")
+                    d_in = self.obter_entrada("Domínio (ex: a,b,c) [Enter para Infinito]: ", obrigatorio=False)
+                    
+                    if d_in:
+                        self.dominio = [x.strip() for x in d_in.split(',')]
+                    else:
+                        self.modo_infinito = True
 
                 qtd = int(self.obter_entrada("Número de Premissas: "))
                 print("Sintaxe: use '->', '<->', '&', '|', '~', 'forall x', 'exists x'")
