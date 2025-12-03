@@ -29,10 +29,6 @@ class VerificadorLogico:
             case _: raise ValueError(f"Formula desconhecida: {formula}")
 
     def construir_tabela_verdade(self, premissas, conclusao):
-        """
-        Generates full truth table data.
-        Returns: (headers, rows, is_valid)
-        """
         todas_vars = set()
         formulas = premissas + [conclusao]
         for f in formulas:

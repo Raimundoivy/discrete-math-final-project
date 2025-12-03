@@ -3,12 +3,10 @@ from typing import Tuple
 
 @dataclass(frozen=True)
 class Formula:
-    """Base class for all logic formulas."""
     pass
 
 @dataclass(frozen=True)
 class Simbolo(Formula):
-    """Atomic proposition (e.g., P, Q) or Predicate constant."""
     nome: str
     
     def __repr__(self):
@@ -16,7 +14,6 @@ class Simbolo(Formula):
 
 @dataclass(frozen=True)
 class Predicado(Formula):
-    """Predicate with arguments (e.g., P(x), Q(a, b))."""
     nome: str
     args: Tuple[str, ...]
 

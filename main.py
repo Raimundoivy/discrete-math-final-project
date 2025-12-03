@@ -51,7 +51,6 @@ class AplicacaoLogica:
         forma = self.identificador_formas.identificar(self.premissas, self.conclusao)
         print(f"[*] Forma Identificada: {forma}")
 
-        # Modo Core: Verificação em Domínio Finito
         print("[*] Modo: Verificação em Domínio Finito (Tabela Verdade)")
         premissas_ativas = self.premissas
         conclusao_ativa = self.conclusao
@@ -86,10 +85,10 @@ class AplicacaoLogica:
         while True:
             self.limpar()
             print("\n" + "="*40)
-            print("   VERIFICADOR LÓGICO (CORE ONLY)")
+            print("   VERIFICADOR LÓGICO")
             print("="*40)
-            print("1. Lógica Proposicional (P -> Q)")
-            print("2. Lógica de Predicados (forall x P(x))")
+            print("1. Lógica Proposicional")
+            print("2. Lógica de Predicados")
             print("3. Sair")
             
             choice = input("> ")
@@ -98,7 +97,6 @@ class AplicacaoLogica:
             
             try:
                 if choice == '2':
-                    # Domínio é OBRIGATÓRIO para a Parte 2 (Core)
                     d_in = self.obter_entrada("Domínio (ex: a,b,c): ", obrigatorio=True)
                     self.dominio = [x.strip() for x in d_in.split(',')]
 
